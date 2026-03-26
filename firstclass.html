@@ -24,7 +24,10 @@
     --border2: #2a2820;
   }
 
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 110px;
+  }
 
   body {
     background: var(--bg);
@@ -1121,6 +1124,10 @@
 </footer>
 
 <script>
+  const nav = document.querySelector('nav');
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+
   // SCROLL REVEAL
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -1143,8 +1150,7 @@
   }
 
   // NAV SCROLL EFFECT
-  window.addEventListener('scroll', () => {
-    const nav = document.querySelector('nav');
+  function updateNavState() {
     if (window.scrollY > 80) {
       nav.style.background = 'rgba(8,8,7,0.97)';
       nav.style.borderBottom = '0.5px solid #1e1d18';
@@ -1152,7 +1158,62 @@
       nav.style.background = '';
       nav.style.borderBottom = '';
     }
-  });
+  }
+
+  let navTicking = false;
+  window.addEventListener('scroll', () => {
+    if (navTicking) return;
+    navTicking = true;
+    requestAnimationFrame(() => {
+      updateNavState();
+      navTicking = false;
+    });
+  }, { passive: true });
+
+  // LIGHTWEIGHT DESKTOP SMOOTH SCROLL
+  if (!prefersReducedMotion && !isTouchDevice) {
+    let currentScroll = window.scrollY;
+    let targetScroll = window.scrollY;
+    let scrollFrame = null;
+
+    function animateScroll() {
+      currentScroll += (targetScroll - currentScroll) * 0.12;
+
+      if (Math.abs(targetScroll - currentScroll) < 0.5) {
+        currentScroll = targetScroll;
+        window.scrollTo(0, currentScroll);
+        scrollFrame = null;
+        return;
+      }
+
+      window.scrollTo(0, currentScroll);
+      scrollFrame = requestAnimationFrame(animateScroll);
+    }
+
+    window.addEventListener('wheel', (event) => {
+      if (event.ctrlKey) return;
+      if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+
+      event.preventDefault();
+
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const delta = Math.max(-140, Math.min(140, event.deltaY));
+
+      targetScroll = Math.max(0, Math.min(maxScroll, targetScroll + delta));
+
+      if (!scrollFrame) {
+        currentScroll = window.scrollY;
+        scrollFrame = requestAnimationFrame(animateScroll);
+      }
+    }, { passive: false });
+
+    window.addEventListener('resize', () => {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      targetScroll = Math.max(0, Math.min(maxScroll, targetScroll));
+    }, { passive: true });
+  }
+
+  updateNavState();
 </script>
 
 </body>
