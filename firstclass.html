@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>First Class — Private Network</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #b4913c;
+    --gold-dim: #7a6028;
+    --gold-light: #d4b06a;
+    --bg: #080807;
+    --bg2: #0e0d0b;
+    --bg3: #141310;
+    --cream: #f0ead8;
+    --cream-dim: #c8c0a8;
+    --muted: #6a6254;
+    --faint: #252318;
+    --border: #1e1d18;
+    --border2: #2a2820;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--cream-dim);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 60px;
+    background: linear-gradient(to bottom, rgba(8,8,7,0.95) 0%, transparent 100%);
+  }
+
+  .nav-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--cream);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .nav-mark span { color: var(--gold); font-style: italic; }
+
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+
+  .nav-links a:hover { color: var(--gold); }
+
+  .nav-cta {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--gold);
+    border: none;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.3s;
+  }
+
+  .nav-cta:hover { background: var(--gold-light); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 140px 60px 100px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 20%; right: -10%;
+    width: 600px; height: 600px;
+    background: radial-gradient(ellipse, rgba(180,145,60,0.06) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .hero-glow2 {
+    position: absolute;
+    bottom: 10%; left: -5%;
+    width: 400px; height: 400px;
+    background: radial-gradient(ellipse, rgba(180,145,60,0.04) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 9px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.2s;
+  }
+
+  .hero-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(56px, 8vw, 110px);
+    font-weight: 300;
+    line-height: 0.95;
+    color: var(--cream);
+    letter-spacing: -2px;
+    margin-bottom: 12px;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 0.35s;
+  }
+
+  .hero-headline em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .hero-subheadline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px, 3vw, 32px);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--muted);
+    margin-bottom: 56px;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 0.5s;
+  }
+
+  .hero-divider {
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 0.65s;
+  }
+
+  .hero-descriptor {
+    max-width: 520px;
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--muted);
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 0.75s;
+  }
+
+  .hero-descriptor strong { color: var(--cream-dim); font-weight: 400; }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 0.9s;
+  }
+
+  .btn-primary {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--gold);
+    border: none;
+    padding: 16px 40px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.3s, transform 0.2s;
+  }
+
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  .btn-ghost {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: color 0.3s;
+  }
+
+  .btn-ghost:hover { color: var(--cream-dim); }
+
+  .btn-ghost::after {
+    content: '→';
+    transition: transform 0.3s;
+  }
+
+  .btn-ghost:hover::after { transform: translateX(4px); }
+
+  .hero-stats {
+    position: absolute;
+    right: 60px;
+    bottom: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    opacity: 0;
+    animation: fadeLeft 1s ease forwards 1.1s;
+  }
+
+  .hero-stat {
+    text-align: right;
+  }
+
+  .hero-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--cream);
+    line-height: 1;
+  }
+
+  .hero-stat-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* SCROLL LINE */
+  .scroll-indicator {
+    position: absolute;
+    bottom: 40px;
+    left: 60px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 1.3s;
+  }
+
+  .scroll-line {
+    width: 40px;
+    height: 0.5px;
+    background: var(--gold-dim);
+  }
+
+  .scroll-text {
+    font-size: 8px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* MARQUEE */
+  .marquee-section {
+    border-top: 0.5px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
+    overflow: hidden;
+    padding: 18px 0;
+    background: var(--bg2);
+  }
+
+  .marquee-track {
+    display: flex;
+    gap: 0;
+    animation: marquee 30s linear infinite;
+    white-space: nowrap;
+  }
+
+  .marquee-item {
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .marquee-item::after {
+    content: '◆';
+    color: var(--gold-dim);
+    font-size: 6px;
+  }
+
+  /* MANIFESTO */
+  .manifesto {
+    padding: 120px 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .manifesto-left {
+    position: sticky;
+    top: 100px;
+  }
+
+  .section-label {
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 24px;
+    height: 0.5px;
+    background: var(--gold);
+  }
+
+  .manifesto-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 4vw, 52px);
+    font-weight: 300;
+    line-height: 1.15;
+    color: var(--cream);
+    margin-bottom: 24px;
+  }
+
+  .manifesto-headline em { font-style: italic; color: var(--gold); }
+
+  .manifesto-body {
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .manifesto-body strong { color: var(--cream-dim); font-weight: 400; }
+
+  .manifesto-right {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .truth-block {
+    padding: 32px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .truth-block:first-child { padding-top: 0; }
+  .truth-block:last-child { border-bottom: none; }
+
+  .truth-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    color: var(--gold-dim);
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+
+  .truth-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--cream);
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .truth-body {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* WHO */
+  .who-section {
+    padding: 120px 60px;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--bg2);
+  }
+
+  .who-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin-top: 64px;
+  }
+
+  .who-cell {
+    background: var(--bg2);
+    padding: 40px;
+    transition: background 0.3s;
+  }
+
+  .who-cell:hover { background: var(--bg3); }
+
+  .who-cell-icon {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+
+  .who-cell-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--cream);
+    margin-bottom: 10px;
+  }
+
+  .who-cell-body {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* STANDARD */
+  .standard-section {
+    padding: 120px 60px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .standard-intro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    margin-bottom: 80px;
+  }
+
+  .standard-quote {
+    border-left: 2px solid var(--gold);
+    padding: 24px 32px;
+    margin-top: 40px;
+  }
+
+  .standard-quote-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--cream-dim);
+    line-height: 1.6;
+  }
+
+  .standard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .standard-cell {
+    background: var(--bg);
+    padding: 40px 32px;
+    position: relative;
+  }
+
+  .standard-cell-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    color: var(--faint);
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+
+  .standard-cell-title {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+
+  .standard-cell-body {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* VERTICALS */
+  .verticals-section {
+    padding: 120px 60px;
+    background: var(--bg2);
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .verticals-list {
+    margin-top: 64px;
+  }
+
+  .vertical-row {
+    display: flex;
+    align-items: center;
+    padding: 28px 0;
+    border-bottom: 0.5px solid var(--border);
+    gap: 40px;
+    transition: padding-left 0.3s;
+    cursor: default;
+  }
+
+  .vertical-row:first-child { border-top: 0.5px solid var(--border); }
+
+  .vertical-row:hover {
+    padding-left: 16px;
+  }
+
+  .vertical-row:hover .vertical-name { color: var(--cream); }
+  .vertical-row:hover .vertical-marker { color: var(--gold); }
+
+  .vertical-marker {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
+    color: var(--gold-dim);
+    font-style: italic;
+    min-width: 40px;
+    transition: color 0.3s;
+  }
+
+  .vertical-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--cream-dim);
+    flex: 1;
+    transition: color 0.3s;
+  }
+
+  .vertical-desc {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-align: right;
+    max-width: 240px;
+  }
+
+  /* APPLICATION */
+  .apply-section {
+    padding: 120px 60px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .apply-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .apply-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-group {
+    border-bottom: 0.5px solid var(--border);
+    padding: 20px 0;
+  }
+
+  .form-group:first-child { border-top: 0.5px solid var(--border); }
+
+  .form-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--cream-dim);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    padding: 0;
+    resize: none;
+  }
+
+  .form-input::placeholder,
+  .form-textarea::placeholder { color: var(--muted); }
+
+  .form-select {
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
+
+  .form-select option {
+    background: #0e0d0b;
+    color: var(--cream-dim);
+  }
+
+  .form-textarea { min-height: 80px; }
+
+  .form-submit {
+    margin-top: 32px;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--gold);
+    border: none;
+    padding: 18px 48px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    transition: background 0.3s, transform 0.2s;
+    align-self: flex-start;
+  }
+
+  .form-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  .apply-left {}
+
+  .apply-disclaimer {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-top: 32px;
+    border-top: 0.5px solid var(--border);
+    padding-top: 24px;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 0.5px solid var(--border);
+  }
+
+  .footer-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--faint);
+    letter-spacing: 4px;
+  }
+
+  .footer-copy {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeLeft {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 24px 32px; }
+    .nav-links { display: none; }
+    .hero { padding: 120px 32px 80px; }
+    .hero-stats { display: none; }
+    .manifesto { grid-template-columns: 1fr; padding: 80px 32px; gap: 60px; }
+    .manifesto-left { position: static; }
+    .who-section { padding: 80px 32px; }
+    .who-grid { grid-template-columns: 1fr; }
+    .standard-section { padding: 80px 32px; }
+    .standard-intro { grid-template-columns: 1fr; gap: 40px; }
+    .standard-grid { grid-template-columns: 1fr; }
+    .verticals-section { padding: 80px 32px; }
+    .apply-section { padding: 80px 32px; }
+    .apply-inner { grid-template-columns: 1fr; gap: 60px; }
+    footer { padding: 40px 32px; flex-direction: column; gap: 20px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-mark">First <span>Class</span></div>
+  <ul class="nav-links">
+    <li><a href="#standard">The Standard</a></li>
+    <li><a href="#verticals">Verticals</a></li>
+    <li><a href="#apply">Apply</a></li>
+  </ul>
+  <a href="#apply" class="nav-cta">Apply Now</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+
+  <div class="hero-eyebrow">Private Network · By Application Only</div>
+
+  <h1 class="hero-headline">
+    You're not lost.<br>
+    You're in the <em>wrong<br>room.</em>
+  </h1>
+
+  <div class="hero-subheadline">First Class changes that.</div>
+
+  <div class="hero-divider"></div>
+
+  <p class="hero-descriptor">
+    A private network for online entrepreneurs who are <strong>actually building.</strong>
+    No spectators. No theory. No one asking if this is possible.<br><br>
+    Just operators — across every major income model — doing the work.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#apply" class="btn-primary">Apply for Access</a>
+    <a href="#standard" class="btn-ghost">See the standard</a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-num">0</div>
+      <div class="hero-stat-label">Cost to Join</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">100%</div>
+      <div class="hero-stat-label">Accountability</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">7</div>
+      <div class="hero-stat-label">Verticals Covered</div>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <div class="scroll-line"></div>
+    <span class="scroll-text">Scroll</span>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+  <div class="marquee-track">
+    <div class="marquee-item">Trading</div>
+    <div class="marquee-item">Ecom</div>
+    <div class="marquee-item">Agencies</div>
+    <div class="marquee-item">Freelance</div>
+    <div class="marquee-item">Copywriting</div>
+    <div class="marquee-item">Info Products</div>
+    <div class="marquee-item">Startups</div>
+    <div class="marquee-item">Social Media</div>
+    <div class="marquee-item">Taxes & Legal</div>
+    <div class="marquee-item">Lifestyle</div>
+    <div class="marquee-item">Trading</div>
+    <div class="marquee-item">Ecom</div>
+    <div class="marquee-item">Agencies</div>
+    <div class="marquee-item">Freelance</div>
+    <div class="marquee-item">Copywriting</div>
+    <div class="marquee-item">Info Products</div>
+    <div class="marquee-item">Startups</div>
+    <div class="marquee-item">Social Media</div>
+    <div class="marquee-item">Taxes & Legal</div>
+    <div class="marquee-item">Lifestyle</div>
+  </div>
+</div>
+
+<!-- MANIFESTO -->
+<section class="manifesto">
+  <div class="manifesto-left reveal">
+    <div class="section-label">The Reality</div>
+    <h2 class="manifesto-headline">
+      Most people around you<br>
+      will never <em>understand</em><br>
+      what you're building.
+    </h2>
+    <p class="manifesto-body">
+      You've been building in isolation. Getting advice from free discords full of people who've never closed a client, held a trade, or shipped a product. Watching less disciplined people post results that should be yours.
+    </p>
+    <p class="manifesto-body">
+      <strong>That's not a motivation problem. It's an environment problem.</strong>
+    </p>
+    <p class="manifesto-body">
+      First Class exists because the room you're in determines everything. Who you talk to every day shapes what you believe is possible. What you believe is possible shapes what you build.
+    </p>
+    <p class="manifesto-body">
+      This is the room.
+    </p>
+  </div>
+
+  <div class="manifesto-right reveal">
+    <div class="truth-block">
+      <div class="truth-num">i.</div>
+      <div class="truth-headline">Wanting to build wealth is not greed.</div>
+      <div class="truth-body">It's the only honest response to knowing what you're capable of and refusing to waste it.</div>
+    </div>
+    <div class="truth-block">
+      <div class="truth-num">ii.</div>
+      <div class="truth-headline">The problem was never the information.</div>
+      <div class="truth-body">It was the absence of people around you who are actually doing it. Tactics without environment produce nothing.</div>
+    </div>
+    <div class="truth-block">
+      <div class="truth-num">iii.</div>
+      <div class="truth-headline">Free doesn't mean low value. It means high standard.</div>
+      <div class="truth-body">First Class costs nothing to join. It costs everything to stay in. The standard is the product.</div>
+    </div>
+    <div class="truth-block">
+      <div class="truth-num">iv.</div>
+      <div class="truth-headline">The man who won't be held accountable is the man who knows he won't deliver.</div>
+      <div class="truth-body">If this scares you, this isn't for you. If it excites you, you already belong here.</div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO -->
+<section class="who-section">
+  <div class="reveal">
+    <div class="section-label">Who This Is For</div>
+    <h2 class="manifesto-headline" style="max-width: 560px;">
+      Built for operators.<br>
+      Not <em>observers.</em>
+    </h2>
+  </div>
+
+  <div class="who-grid reveal">
+    <div class="who-cell">
+      <div class="who-cell-icon">In ↗</div>
+      <div class="who-cell-title">You're already moving.</div>
+      <div class="who-cell-body">You've made your first dollar, you're days away, or you're deep in the work. You don't need someone to convince you this is real. You need people who are already proving it.</div>
+    </div>
+    <div class="who-cell">
+      <div class="who-cell-icon">In ↗</div>
+      <div class="who-cell-title">You want real feedback.</div>
+      <div class="who-cell-body">Not validation. Not "great job." The kind of feedback that shows you exactly where you're wrong — and exactly what to fix. You can handle the truth.</div>
+    </div>
+    <div class="who-cell">
+      <div class="who-cell-icon">In ↗</div>
+      <div class="who-cell-title">You show up consistently.</div>
+      <div class="who-cell-body">You understand that the network is only as strong as its least active member. You contribute. You share wins, losses, and what you learned from both.</div>
+    </div>
+    <div class="who-cell">
+      <div class="who-cell-icon">In ↗</div>
+      <div class="who-cell-title">You're building toward a life, not just an income.</div>
+      <div class="who-cell-body">The business is the vehicle. The freedom — financial, temporal, geographical — is what you're actually after. You've been honest with yourself about that.</div>
+    </div>
+
+    <div class="who-cell" style="background: #0a0a08; border-top: 2px solid #1e1d18;">
+      <div class="who-cell-icon" style="color: #3a3830;">Out ✕</div>
+      <div class="who-cell-title" style="color: var(--muted);">Not passive learners.</div>
+      <div class="who-cell-body" style="color: #3a3830;">If you're here to consume and never contribute, the standard will remove you. This is not a library.</div>
+    </div>
+    <div class="who-cell" style="background: #0a0a08; border-top: 2px solid #1e1d18;">
+      <div class="who-cell-icon" style="color: #3a3830;">Out ✕</div>
+      <div class="who-cell-title" style="color: var(--muted);">Not excuse makers.</div>
+      <div class="who-cell-body" style="color: #3a3830;">If you spent the week explaining why you couldn't move — you're in the wrong room. First Class is for people who moved anyway.</div>
+    </div>
+  </div>
+</section>
+
+<!-- STANDARD -->
+<section class="standard-section" id="standard">
+  <div class="standard-intro">
+    <div class="reveal">
+      <div class="section-label">The Standard</div>
+      <h2 class="manifesto-headline">
+        Free to join.<br>
+        <em>Earned</em> to stay in.
+      </h2>
+      <p class="manifesto-body">
+        First Class doesn't cost money. It costs movement. Every member is expected to show up — not perfectly, but consistently. Share what you're building. Post your progress. Give real feedback. Go quiet for 30 days and the seat is gone.
+      </p>
+      <p class="manifesto-body">
+        This is not a policy. It's a feature. The standard is what makes the room worth being in.
+      </p>
+    </div>
+    <div class="reveal">
+      <div class="standard-quote">
+        <div class="standard-quote-text">"The question is not whether you can afford to be held accountable. The question is whether you can afford not to be."</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="standard-grid reveal">
+    <div class="standard-cell">
+      <div class="standard-cell-num">01</div>
+      <div class="standard-cell-title">Move Weekly</div>
+      <div class="standard-cell-body">Post at least once a week. A win, a loss, a lesson, a question. Silence is not acceptable. Inactivity is the only way to lose your seat.</div>
+    </div>
+    <div class="standard-cell">
+      <div class="standard-cell-num">02</div>
+      <div class="standard-cell-title">Give Real Feedback</div>
+      <div class="standard-cell-body">When someone asks for feedback, tell them the truth. Not what they want to hear. Soft feedback is a waste of everyone's time.</div>
+    </div>
+    <div class="standard-cell">
+      <div class="standard-cell-num">03</div>
+      <div class="standard-cell-title">No Spectators</div>
+      <div class="standard-cell-body">You are not here to watch other people build. You have your own business to run. Show up for others — and show up for yours.</div>
+    </div>
+    <div class="standard-cell">
+      <div class="standard-cell-num">04</div>
+      <div class="standard-cell-title">Document the Journey</div>
+      <div class="standard-cell-body">Share the process — not just the wins. The losses, the pivots, the confusion. That's what actually helps everyone in the room.</div>
+    </div>
+    <div class="standard-cell">
+      <div class="standard-cell-num">05</div>
+      <div class="standard-cell-title">Respect the Room</div>
+      <div class="standard-cell-body">No noise. No spam. No self-promotion that doesn't add value. The room stays clean because everyone treats it like the asset it is.</div>
+    </div>
+    <div class="standard-cell">
+      <div class="standard-cell-num">06</div>
+      <div class="standard-cell-title">Push the Needle</div>
+      <div class="standard-cell-body">Every week, do something that moves your business forward. Doesn't have to be big. Has to be real. First Class is for people who don't stop.</div>
+    </div>
+  </div>
+</section>
+
+<!-- VERTICALS -->
+<section class="verticals-section" id="verticals">
+  <div class="reveal">
+    <div class="section-label">The Verticals</div>
+    <h2 class="manifesto-headline" style="max-width: 480px;">
+      Every major income model.<br>
+      One <em>table.</em>
+    </h2>
+  </div>
+
+  <div class="verticals-list reveal">
+    <div class="vertical-row">
+      <div class="vertical-marker">i.</div>
+      <div class="vertical-name">Trading</div>
+      <div class="vertical-desc">NQ, futures, PA setups, risk management, psychology</div>
+    </div>
+    <div class="vertical-row">
+      <div class="vertical-marker">ii.</div>
+      <div class="vertical-name">Ecommerce</div>
+      <div class="vertical-desc">Dropship, brand building, product research, ads</div>
+    </div>
+    <div class="vertical-row">
+      <div class="vertical-marker">iii.</div>
+      <div class="vertical-name">Agencies</div>
+      <div class="vertical-desc">Client acquisition, service delivery, scaling, pricing</div>
+    </div>
+    <div class="vertical-row">
+      <div class="vertical-marker">iv.</div>
+      <div class="vertical-name">Freelance & Copywriting</div>
+      <div class="vertical-desc">Solo operators, high-margin services, client work</div>
+    </div>
+    <div class="vertical-row">
+      <div class="vertical-marker">v.</div>
+      <div class="vertical-name">Info Products</div>
+      <div class="vertical-desc">Courses, newsletters, memberships, digital assets</div>
+    </div>
+    <div class="vertical-row">
+      <div class="vertical-marker">vi.</div>
+      <div class="vertical-name">Social Media & Content</div>
+      <div class="vertical-desc">Brand building, monetization, platform strategy</div>
+    </div>
+    <div class="vertical-row">
+      <div class="vertical-marker">vii.</div>
+      <div class="vertical-name">Startups</div>
+      <div class="vertical-desc">Building products, raising, early traction, MVP loops</div>
+    </div>
+    <div class="vertical-row" style="border-color: var(--gold-dim);">
+      <div class="vertical-marker" style="color: var(--gold);">+</div>
+      <div class="vertical-name" style="color: var(--muted); font-size: 20px;">Taxes · Legal · Lifestyle</div>
+      <div class="vertical-desc">The infrastructure everyone ignores until it's too late</div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLY -->
+<section class="apply-section" id="apply">
+  <div class="apply-inner">
+    <div class="apply-left reveal">
+      <div class="section-label">The Application</div>
+      <h2 class="manifesto-headline">
+        This isn't a signup.<br>
+        It's a <em>declaration.</em>
+      </h2>
+      <p class="manifesto-body">
+        There's no price. No trial period. No free tier with a paywall in front of the real content.
+      </p>
+      <p class="manifesto-body">
+        What there is: a standard. And an application that tells us — and you — whether you're ready to meet it.
+      </p>
+      <p class="manifesto-body">
+        If you're approved, you're in. If you stay active, you stay in. The room is earned — and it's yours as long as you keep earning it.
+      </p>
+      <div class="apply-disclaimer">
+        Applications reviewed within 48 hours. Admission is selective. If you're not ready to be held accountable to movement — wait until you are.
+      </div>
+    </div>
+
+    <div class="reveal">
+      <form class="apply-form" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="form-input" type="text" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">X / Twitter Handle</label>
+          <input class="form-input" type="text" placeholder="@yourhandle">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Primary Business Model</label>
+          <select class="form-select form-input" required>
+            <option value="" disabled selected style="color: #6a6254;">Select your vertical</option>
+            <option>Trading</option>
+            <option>Ecommerce</option>
+            <option>Agency</option>
+            <option>Freelance / Copywriting</option>
+            <option>Info Products</option>
+            <option>Social Media / Content</option>
+            <option>Startup</option>
+            <option>Multiple</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">What are you currently building?</label>
+          <textarea class="form-textarea form-input" placeholder="Be specific. What is the business, where is it right now, and what does the next 90 days look like?" required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">What did you do this week to push it forward?</label>
+          <textarea class="form-textarea form-input" placeholder="This is the question that matters. Not your plan — your action." required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Why First Class — and why now?</label>
+          <textarea class="form-textarea form-input" placeholder="What is the real answer." required></textarea>
+        </div>
+        <button type="submit" class="form-submit" id="submit-btn">Submit Application →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-mark">FC</div>
+  <div class="footer-copy">First Class · Private Network · By Application Only</div>
+</footer>
+
+<script>
+  // SCROLL REVEAL
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // FORM SUBMIT
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    btn.textContent = 'Application Received ✓';
+    btn.style.background = '#3a3830';
+    btn.style.color = '#b4913c';
+    btn.disabled = true;
+  }
+
+  // NAV SCROLL EFFECT
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    if (window.scrollY > 80) {
+      nav.style.background = 'rgba(8,8,7,0.97)';
+      nav.style.borderBottom = '0.5px solid #1e1d18';
+    } else {
+      nav.style.background = '';
+      nav.style.borderBottom = '';
+    }
+  });
+</script>
+
+</body>
+</html>
