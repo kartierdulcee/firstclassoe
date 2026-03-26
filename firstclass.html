@@ -1125,8 +1125,6 @@
 
 <script>
   const nav = document.querySelector('nav');
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 
   // SCROLL REVEAL
   const observer = new IntersectionObserver((entries) => {
@@ -1169,49 +1167,6 @@
       navTicking = false;
     });
   }, { passive: true });
-
-  // LIGHTWEIGHT DESKTOP SMOOTH SCROLL
-  if (!prefersReducedMotion && !isTouchDevice) {
-    let currentScroll = window.scrollY;
-    let targetScroll = window.scrollY;
-    let scrollFrame = null;
-
-    function animateScroll() {
-      currentScroll += (targetScroll - currentScroll) * 0.12;
-
-      if (Math.abs(targetScroll - currentScroll) < 0.5) {
-        currentScroll = targetScroll;
-        window.scrollTo(0, currentScroll);
-        scrollFrame = null;
-        return;
-      }
-
-      window.scrollTo(0, currentScroll);
-      scrollFrame = requestAnimationFrame(animateScroll);
-    }
-
-    window.addEventListener('wheel', (event) => {
-      if (event.ctrlKey) return;
-      if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
-
-      event.preventDefault();
-
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const delta = Math.max(-140, Math.min(140, event.deltaY));
-
-      targetScroll = Math.max(0, Math.min(maxScroll, targetScroll + delta));
-
-      if (!scrollFrame) {
-        currentScroll = window.scrollY;
-        scrollFrame = requestAnimationFrame(animateScroll);
-      }
-    }, { passive: false });
-
-    window.addEventListener('resize', () => {
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      targetScroll = Math.max(0, Math.min(maxScroll, targetScroll));
-    }, { passive: true });
-  }
 
   updateNavState();
 </script>
